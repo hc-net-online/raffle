@@ -20,20 +20,26 @@ async function getRandom(max, n) {
 server.post('/', (req, res) => {
     if (req.body) {
         const {prize_count, numerator, denominator, tickets} = req.body;
-        if (
-            prize_count
-            && numerator
-            && denominator
-            && tickets
+        if (tickets
+            && ((prize_count && numerator && denominator)
+                || prize_count)
         ) {
             if (Array.isArray(tickets) && tickets.length) {
-                const count = tickets.length;
-                let winners_count = Math.ceil((tickets.length / denominator) * numerator);
-                if (winners_count > prize_count) {
+                const ticketsCount = tickets.length;
+                let winners_count;
+                if (numerator && denominator) {
+                    winners_count = Math.ceil((ticketsCount / denominator) * numerator);
+                    if (winners_count > prize_count) {
+                        winners_count = prize_count;
+                    }
+                } else {
                     winners_count = prize_count;
                 }
+                if (winners_count > ticketsCount) {
+                    winners_count = ticketsCount;
+                }
 
-                return getRandom(count - 1, winners_count).then(data => {
+                return getRandom(ticketsCount - 1, winners_count).then(data => {
                     let winners = [];
                     for (const i of data) {
                         winners.push(tickets[i]);
